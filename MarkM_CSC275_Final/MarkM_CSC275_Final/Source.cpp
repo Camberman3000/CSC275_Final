@@ -22,9 +22,10 @@ condition_variable cv;
 string mainThreadID;// Main thread ID
 string fileName = "VehicleData.txt";// File name
 int chevySuperchargerHP = 200;
-double chevyWiderTireTraction = 0.5;
+double chevyWiderTireTraction = 200.0;
 int dodgeSuperchargerHP = 200;
-double dodgeWiderTireTraction = 0.5;
+double dodgeWiderTireTraction = 200.0;
+double ET;
 
 struct AddonsInstalled
 {
@@ -119,7 +120,7 @@ public:
 		/* Roll random number */
 		random_device rd; // obtain a random number
 		mt19937 gen(rd()); // seed
-		uniform_int_distribution<> distr(10, 200); // define the range
+		uniform_int_distribution<> distr(150, 250); // define the range
 		 
 		return distr(gen);// Return the random number
 	};
@@ -381,7 +382,7 @@ class Chevy : public Vehicle
 private:
 	string vehicledescription = "The Chevy has great tire traction but not as much horsepower as the Dodge.";
 	 int horsepower = 650;
-	 double traction = 0.3f;
+	 double traction = 850.0f;
 public:
 	string GetVehicleDescription()
 	{
@@ -409,8 +410,8 @@ class Dodge : public Vehicle
 {
 private:
 	string vehicledescription = "The Dodge has great horsepower but not as much tire traction as the Chevy.";
-	int horsepower = 845;
-	double traction = 0.1f;
+	int horsepower = 850;
+	double traction = 650.00f;
 
 public:
 	string GetVehicleDescription()
@@ -434,6 +435,11 @@ public:
 		traction = tr;
 	}
 };// End of Dodge Class
+
+void GetET(double HP, double TR, double RT)
+{
+	ET = (HP + TR - RT) / 200;// Elapsed Time = Horsepower + Traction - Reaction Time / number to get approximate seconds it took to get down the track.
+}
 
 int main()
 {
@@ -462,48 +468,72 @@ int main()
 			// Race! 
 			/* Get reaction time for each vehicle */
 			int roll = vehicle.RandomRoll();// Get Chevy reaction time
-			double reactionTime1 = static_cast<double>(roll) / 1000;
-			cout << "Lane 1: Chevy reaction time: " << reactionTime1 << endl;
+			double chevyRt = static_cast<double>(roll);
+			cout << "Lane 1: Chevy reaction time: " << chevyRt / 1000 << endl;
 			roll = vehicle.RandomRoll();// Get Dodge reaction time
-			double reactionTime2 = static_cast<double>(roll) / 1000;
-			cout << "Lane 2: Dodge reaction time: " << reactionTime2 << endl;
+			double dodgeRt = static_cast<double>(roll);
+			cout << "Lane 2: Dodge reaction time: " << dodgeRt / 1000 << endl;
 
-			 
+			/* Get all addons installed/loaded - if any */
 			if (addons.chevyTires == true)
 			{
-				double tr = chevy.GetVehicleTraction();
-				cout << "Current Chevy tire traction: " << tr << endl;
-				tr = tr += chevyWiderTireTraction;
-				cout << "NEW Chevy tire traction: " << tr << endl;
+				double tr = chevy.GetVehicleTraction();				
+				tr = tr += chevyWiderTireTraction;				
 			}
 
 			if (addons.dodgeTires == true)
 			{
-				double tr = dodge.GetVehicleTraction();
-				cout << "Current Dodge tire traction: " << tr << endl;
-				tr = tr += dodgeWiderTireTraction;
-				cout << "NEW Dodge tire traction: " << tr << endl;
+				double tr = dodge.GetVehicleTraction();				
+				tr = tr += dodgeWiderTireTraction;				
 			}
 
 			if (addons.chevySupercharger == true)
 			{
-				double tr = chevy.GetVehicleHorsepower();
-				cout << "Current Chevy horsepower: " << tr << endl;
-				tr = tr += chevySuperchargerHP;
-				cout << "NEW Chevy horsepower: " << tr << endl;
+				double tr = chevy.GetVehicleHorsepower();				
+				tr = tr += chevySuperchargerHP;				
 			}
 
 			if (addons.dodgeSupercharger == true)
 			{
-				double tr = dodge.GetVehicleHorsepower();
-				cout << "Current Dodge horsepower: " << tr << endl;
-				tr = tr += chevySuperchargerHP;
-				cout << "NEW Dodge horsepower: " << tr << endl;
+				double tr = dodge.GetVehicleHorsepower();				
+				tr = tr += chevySuperchargerHP;				
 			}
 
+			/* Perform Racing Calculations */
+			double chevyHP = chevy.GetVehicleHorsepower();
+			double chevyTr = chevy.GetVehicleTraction();
+			double dodgeHP = dodge.GetVehicleHorsepower();
+			double dodgeTr = dodge.GetVehicleTraction();
 
-			// TODO: Finish all race requirements, timers and threading to start race
-
+			thread t1 { GetET, chevyHP, chevyTr, chevyRt };// Start thread for Chevy
+			if (t1.joinable())
+			{
+				t1.join();
+			}
+			double chevyET = ET;// Get the elapsed time for the Chevy
+			cout << "Chevy ET: " << chevyET << " seconds." << endl;
+			thread t2{ GetET, dodgeHP, dodgeTr, dodgeRt };// Start thread for Dodge
+			if (t2.joinable())
+			{
+				t2.join();
+			}
+			double dodgeET = ET;// Get the elapsed time for the Dodge
+			cout << "Dodge ET: " << dodgeET << " seconds." << endl;
+			cout << endl;
+			/* Show win message (or tie) */
+			double lowET = min(chevyET, dodgeET);
+			if (lowET == chevyET)
+			{
+				cout << "Congrats Chevy driver, you won with a low ET of " << lowET << "!" << endl << endl;
+			}
+			else if (lowET == dodgeET)
+			{
+				cout << "Congrats Dodge driver, you won with a low ET of " << lowET << "!" << endl << endl;
+			}
+			else
+			{
+				cout << "Whoops, looks like we have a tie! Pull around for another run and see who has the faster car." << endl;
+			}
 		}// end if choice == 2
 		else if (choice == 3)
 		{	
@@ -563,14 +593,14 @@ int main()
 		{
 			/* Load Chevy profile */			
 			vector<string> vStr = vehicle.ReadAllFromFile();// Read all items in file
-			vector<string> chevyMods;
+			vector<string> chevyMods;// Holds all Chevy mods
 			for (string str : vStr)// Loop through all entries
 			{
 				size_t pos = str.find("Chevy");// Search for the word Chevy in entry
 				if (pos != string::npos)// found?
 				{					 
 					 chevy.vehicleModified = true;	
-					 chevyMods.push_back(str);
+					 chevyMods.push_back(str);// Add to list
 				}				
 				
 				if (chevy.vehicleModified == true)
@@ -583,14 +613,14 @@ int main()
 		{
 			/* Load Dodge profile */			
 			vector<string> vStr = vehicle.ReadAllFromFile();// Read all items in file
-			vector<string> dodgeMods;
+			vector<string> dodgeMods;// Holds all Dodge mods
 			for (string str : vStr)// Loop through all entries
 			{
 				size_t pos2 = str.find("Dodge");// Search for the word Dodge in entry
 				if (pos2 != string::npos)// found?
 				{
 					dodge.vehicleModified = true;	
-					dodgeMods.push_back(str);
+					dodgeMods.push_back(str);// Add to list
 				}
 
 				if (dodge.vehicleModified == true)
