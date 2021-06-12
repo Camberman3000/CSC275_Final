@@ -21,15 +21,17 @@ mutex Locker; // The mutex class is a synchronization primitive that can be used
 condition_variable cv;
 string mainThreadID;// Main thread ID
 string fileName = "VehicleData.txt";// File name
-int superchargerHP = 200;
-double widerTireTraction = 0.5;
+int chevySuperchargerHP = 200;
+double chevyWiderTireTraction = 0.5;
+int dodgeSuperchargerHP = 200;
+double dodgeWiderTireTraction = 0.5;
 
 struct AddonsInstalled
 {
-	bool chevyTires;
-	bool chevySupercharger;
-	bool dodgeTires;
-	bool dodgeSupercharger;
+	bool chevyTires = false;
+	bool chevySupercharger = false;
+	bool dodgeTires = false;
+	bool dodgeSupercharger = false;
 };
  
 
@@ -467,12 +469,36 @@ int main()
 			cout << "Lane 2: Dodge reaction time: " << reactionTime2 << endl;
 
 			 
-			if (addons.chevyTires && addons.chevyTires == true)
+			if (addons.chevyTires == true)
 			{
 				double tr = chevy.GetVehicleTraction();
-				cout << "Current tire traction: " << tr << endl;
-				tr = tr += widerTireTraction;
-				cout << "NEW tire traction: " << tr << endl;
+				cout << "Current Chevy tire traction: " << tr << endl;
+				tr = tr += chevyWiderTireTraction;
+				cout << "NEW Chevy tire traction: " << tr << endl;
+			}
+
+			if (addons.dodgeTires == true)
+			{
+				double tr = dodge.GetVehicleTraction();
+				cout << "Current Dodge tire traction: " << tr << endl;
+				tr = tr += dodgeWiderTireTraction;
+				cout << "NEW Dodge tire traction: " << tr << endl;
+			}
+
+			if (addons.chevySupercharger == true)
+			{
+				double tr = chevy.GetVehicleHorsepower();
+				cout << "Current Chevy horsepower: " << tr << endl;
+				tr = tr += chevySuperchargerHP;
+				cout << "NEW Chevy horsepower: " << tr << endl;
+			}
+
+			if (addons.dodgeSupercharger == true)
+			{
+				double tr = dodge.GetVehicleHorsepower();
+				cout << "Current Dodge horsepower: " << tr << endl;
+				tr = tr += chevySuperchargerHP;
+				cout << "NEW Dodge horsepower: " << tr << endl;
 			}
 
 
@@ -537,17 +563,19 @@ int main()
 		{
 			/* Load Chevy profile */			
 			vector<string> vStr = vehicle.ReadAllFromFile();// Read all items in file
+			vector<string> chevyMods;
 			for (string str : vStr)// Loop through all entries
 			{
 				size_t pos = str.find("Chevy");// Search for the word Chevy in entry
-				if (pos == string::npos)// found?
+				if (pos != string::npos)// found?
 				{					 
-					 chevy.vehicleModified = true;					 
+					 chevy.vehicleModified = true;	
+					 chevyMods.push_back(str);
 				}				
 				
 				if (chevy.vehicleModified == true)
 				{
-					addons = vehicle.OpenSpeedShop(vStr, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
+					addons = vehicle.OpenSpeedShop(chevyMods, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
 				}
 			}			 
 		}// end if choice == 5
@@ -555,17 +583,19 @@ int main()
 		{
 			/* Load Dodge profile */			
 			vector<string> vStr = vehicle.ReadAllFromFile();// Read all items in file
+			vector<string> dodgeMods;
 			for (string str : vStr)// Loop through all entries
 			{
 				size_t pos2 = str.find("Dodge");// Search for the word Dodge in entry
-				if (pos2 == string::npos)// found?
+				if (pos2 != string::npos)// found?
 				{
-					dodge.vehicleModified = true;					 
+					dodge.vehicleModified = true;	
+					dodgeMods.push_back(str);
 				}
 
 				if (dodge.vehicleModified == true)
 				{
-					addons = vehicle.OpenSpeedShop(vStr, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
+					addons = vehicle.OpenSpeedShop(dodgeMods, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
 				}
 			}			 
 		}// end if choice == 6		
