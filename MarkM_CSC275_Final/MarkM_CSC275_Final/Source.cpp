@@ -1,5 +1,5 @@
 /* Mark Montenieri
-   Spring 2021
+   Summer 2021
    CSC275
 
    Final project */
@@ -17,9 +17,6 @@
 
 using namespace std;
 
-mutex Locker; // The mutex class is a synchronization primitive that can be used to protect shared data from being simultaneously accessed by multiple threads
-condition_variable cv;
-string mainThreadID;// Main thread ID
 string fileName = "VehicleData.txt";// File name
 int chevySuperchargerHP = 200;
 double chevyWiderTireTraction = 200.0;
@@ -44,10 +41,8 @@ int mainMenu()
 	cout << "3 = Chevy Speed Shop (Will also load profile if one is present)" << endl;
 	cout << "4 = Dodge Speed Shop (Will also load profile if one is present)" << endl;
 	cout << "5 = Load Chevy profile" << endl;
-	cout << "6 = Load Dodge profile" << endl;	
-	cout << "7 = Show best runs" << endl;
-	cout << "8 = Exit" << endl;
-
+	cout << "6 = Load Dodge profile" << endl;		
+	cout << "7 = Exit" << endl;
 	 	 
 	cin >> choice;// Attempt to get user input
 	 
@@ -217,36 +212,8 @@ public:
 		return "";
 	}// End SearchFileForString
 
-	//vector<string> ReadFromSpeedShopFile()
-	//{
-	//	vector<string> allVehicleEntries;
-	//	// Read all lines
-	//	// Is there a Chevy entry?
-	//		// Get all add-ons for Chevy
-	//		// if (chevyEntries != nullptr)
-	//		// {
-	//		//		chevy.vehicleModified = true;
-	//		// }
-	//		// else
-	//		// {
-	//		//		chevy.vehicleModified = false;
-	//		// }
-	//	// Is there a Dodge entry?
-	//		// Get all add-ons for Dodge
-	//		// if (dodgeEntries != nullptr)
-	//		// {
-	//		//		dodge.vehicleModified = true;
-	//		// }
-	//		// else
-	//		// {
-	//		//		dodge.vehicleModified = false;
-	//		// }
-	//	return allVehicleEntries;
-	//}
-
 	AddonsInstalled OpenSpeedShop(vector<string> entries, string vehicle)// Open the speed shop and populate the performance add-ons already on vehicle
-	{
-		 
+	{		 
 		/* Determine if there are mods already installed */
 		tiresInstalled = false;// Init vars
 		superchargerInstalled = false;// Init vars
@@ -456,7 +423,7 @@ int main()
 	
 	/* Main menu */
 	int choice = mainMenu();
-	while (choice != 8)
+	while (choice != 7)
 	{
 		if (choice == 1)
 		{
@@ -602,12 +569,12 @@ int main()
 					 chevy.vehicleModified = true;	
 					 chevyMods.push_back(str);// Add to list
 				}				
-				
-				if (chevy.vehicleModified == true)
-				{
-					addons = vehicle.OpenSpeedShop(chevyMods, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
-				}
-			}			 
+			}	
+			if (chevy.vehicleModified == true)
+			{
+				cout << "Chevy profile loaded" << endl;
+				addons = vehicle.OpenSpeedShop(chevyMods, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
+			}
 		}// end if choice == 5
 		else if (choice == 6)
 		{
@@ -621,23 +588,18 @@ int main()
 				{
 					dodge.vehicleModified = true;	
 					dodgeMods.push_back(str);// Add to list
-				}
-
-				if (dodge.vehicleModified == true)
-				{
-					addons = vehicle.OpenSpeedShop(dodgeMods, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
-				}
-			}			 
+				}				
+			}	
+			if (dodge.vehicleModified == true)
+			{
+				cout << "Dodge profile loaded" << endl;
+				addons = vehicle.OpenSpeedShop(dodgeMods, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
+			}
 		}// end if choice == 6		
 		else if (choice == 7)
 		{
-			// Show best runs
-
-		}// end if choice == 7
-		else if (choice == 8)
-		{
-			// Exit game			 
-		}
+		// Exit game
+		}// end if choice == 7		 
 		else
 		{
 			cout << "Invalid choice" << endl;// Exception handling: This message will show if a non-listed number is entered
@@ -646,12 +608,6 @@ int main()
 		choice = mainMenu();
 	}; // end while
 
-	/* Get main thread ID */
-	auto myid = this_thread::get_id();
-	stringstream ss;
-	ss << myid;
-	string idString = ss.str();
-	mainThreadID = idString;
-	cout << "The main base thread ID is: " << mainThreadID << endl << endl;// Gets current thread ID
+	
 	system("pause");
 }
