@@ -21,28 +21,47 @@ mutex Locker; // The mutex class is a synchronization primitive that can be used
 condition_variable cv;
 string mainThreadID;// Main thread ID
 string fileName = "VehicleData.txt";// File name
+int superchargerHP = 200;
+double widerTireTraction = 0.5;
+
+struct AddonsInstalled
+{
+	bool chevyTires;
+	bool chevySupercharger;
+	bool dodgeTires;
+	bool dodgeSupercharger;
+};
+ 
 
 int mainMenu()
 {
 	int choice;
 	cout << "1 = Rules" << endl;
 	cout << "2 = RACE!" << endl;
-	cout << "3 = Chevy Speed Shop" << endl;
-	cout << "4 = Dodge Speed Shop" << endl;
+	cout << "3 = Chevy Speed Shop (Will also load profile if one is present)" << endl;
+	cout << "4 = Dodge Speed Shop (Will also load profile if one is present)" << endl;
 	cout << "5 = Load Chevy profile" << endl;
 	cout << "6 = Load Dodge profile" << endl;	
 	cout << "7 = Show best runs" << endl;
 	cout << "8 = Exit" << endl;
 
-	/* Try text entry */	 
-	cin >> choice;
+	 	 
+	cin >> choice;// Attempt to get user input
 	 
-	while (!cin.good())// Do while value is not good
+	/* Exception handling */
+	try
 	{
-		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');// Ensure value is numeric
-		cout << "You must type an integer." << endl << endl;
-		choice = mainMenu();// call function again
+		while (!cin.good())// Do while value is not good
+		{
+			cin.clear();
+			cin.ignore(std::numeric_limits<streamsize>::max(), '\n');// Ensure value is numeric
+			cout << "You must type an integer." << endl << endl;
+			choice = mainMenu();// call function again
+		}
+	}
+	catch (string ex)
+	{
+		cout << "Input error: " << ex << endl;
 	}
 		 
 	return choice;
@@ -95,10 +114,10 @@ public:
 
 	virtual int RandomRoll()// Can be overridden
 	{	 
-		/* Roll random number between 50-100 */
+		/* Roll random number */
 		random_device rd; // obtain a random number
 		mt19937 gen(rd()); // seed
-		uniform_int_distribution<> distr(50, 100); // define the range
+		uniform_int_distribution<> distr(10, 200); // define the range
 		 
 		return distr(gen);// Return the random number
 	};
@@ -111,6 +130,10 @@ public:
 	bool vehicleModified;// Has the vehicle been modified?
 	bool tiresInstalled;
 	bool superchargerInstalled;
+	string vehicledescription = "";
+	int horsepower = 0;
+	double traction = 0.f;
+	AddonsInstalled addons;
 
 	Vehicle()
 	{
@@ -119,7 +142,7 @@ public:
 		vehicleModified = false;
 		tiresInstalled = false;
 		superchargerInstalled = false;
-	}
+	}  
 
 	int RandomRoll() override
 	{
@@ -218,8 +241,9 @@ public:
 	//	return allVehicleEntries;
 	//}
 
-	void OpenSpeedShop(vector<string> entries, string vehicle)// Open the speed shop and populate the performance add-ons already on vehicle
+	AddonsInstalled OpenSpeedShop(vector<string> entries, string vehicle)// Open the speed shop and populate the performance add-ons already on vehicle
 	{
+		 
 		/* Determine if there are mods already installed */
 		tiresInstalled = false;// Init vars
 		superchargerInstalled = false;// Init vars
@@ -231,12 +255,28 @@ public:
 			if (pos != string::npos)// found?
 			{
 				tiresInstalled = true;
+				if (vehicle == "Chevy")
+				{
+					addons.chevyTires = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeTires = true;
+				}
 			}			 
 
 			size_t pos2 = entry.find("supercharger");// Search for the word supercharger in entry
 			if (pos2 != string::npos)// found?
 			{
 				superchargerInstalled = true;
+				if (vehicle == "Chevy")
+				{
+					addons.chevySupercharger = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeSupercharger = true;
+				}
 			}			 
 		 }
 
@@ -250,12 +290,28 @@ public:
 				cout << "You added wider tires to your " << vehicle << endl << endl;
 				tiresInstalled = true;				
 				AppendToFile(vehicle + " tires");// Write line to file
+				if (vehicle == "Chevy")
+				{
+					addons.chevyTires = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeTires = true;
+				}
 			} // end if choice == 1
 			else if (choice == 2)
 			{
 				cout << "You added a supercharger to your " << vehicle << endl << endl;
 				superchargerInstalled = true;				
 				AppendToFile(vehicle + " supercharger");// Write line to file
+				if (vehicle == "Chevy")
+				{
+					addons.chevySupercharger = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeSupercharger = true;
+				}
 			}// end if choice == 2
 			else if (choice == 3)
 			{
@@ -265,9 +321,10 @@ public:
 			cout << endl;
 			choice = speedShopMenu(tiresInstalled, superchargerInstalled);
 		};// End While 
+		return addons;		
 	}
 
-	void OpenSpeedShop(string vehicle)// Open the speed shop with no add-ons installed
+	AddonsInstalled OpenSpeedShop(string vehicle)// Open the speed shop with no add-ons installed
 	{	 
 		cout << vehicle << " Speed Shop" << " - Make a selection to continue." << endl;
 		/* Speed Shop menu */
@@ -280,6 +337,14 @@ public:
 				cout << "You added wider tires to your " << vehicle << endl << endl;
 				tiresInstalled = true;
 				AppendToFile(vehicle + " tires");// Write line to file
+				if (vehicle == "Chevy")
+				{
+					addons.chevyTires = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeTires = true;
+				}
 			} // end if choice == 1
 			else if (choice == 2)
 			{
@@ -287,6 +352,14 @@ public:
 				cout << "You added a supercharger to your " << vehicle << endl << endl;
 				superchargerInstalled = true;
 				AppendToFile(vehicle + " supercharger");// Write line to file
+				if (vehicle == "Chevy")
+				{
+					addons.chevySupercharger = true;
+				}
+				if (vehicle == "Dodge")
+				{
+					addons.dodgeSupercharger = true;
+				}
 
 			}// end if choice == 2
 			else if (choice == 3)
@@ -296,7 +369,8 @@ public:
 			};// end if choice == 3
 			cout << endl;
 			choice = speedShopMenu(tiresInstalled, superchargerInstalled);
-		};// End While		 
+		};// End While	
+		return addons;
 	}
 };// End of Vehicle class
 
@@ -305,7 +379,7 @@ class Chevy : public Vehicle
 private:
 	string vehicledescription = "The Chevy has great tire traction but not as much horsepower as the Dodge.";
 	 int horsepower = 650;
-	 float traction = 1.3f;
+	 double traction = 0.3f;
 public:
 	string GetVehicleDescription()
 	{
@@ -315,9 +389,17 @@ public:
 	{
 		return horsepower;
 	}
-	float GetVehicleTraction()
+	void SetVehicleHorsepower(int hp)
+	{
+		horsepower = hp;
+	}
+	double GetVehicleTraction()
 	{
 		return traction;
+	}
+	void SetVehicleTraction(double tr)
+	{
+		traction = tr;
 	}
 };// End of Chevy Class
 
@@ -326,7 +408,7 @@ class Dodge : public Vehicle
 private:
 	string vehicledescription = "The Dodge has great horsepower but not as much tire traction as the Chevy.";
 	int horsepower = 845;
-	float traction = 1.0f;
+	double traction = 0.1f;
 
 public:
 	string GetVehicleDescription()
@@ -337,9 +419,17 @@ public:
 	{
 		return horsepower;
 	}
-	float GetVehicleTraction()
+	void SetVehicleHorsepower(int hp)
+	{
+		horsepower = hp;
+	}
+	double GetVehicleTraction()
 	{
 		return traction;
+	}
+	void SetVehicleTraction(double tr)
+	{
+		traction = tr;
 	}
 };// End of Dodge Class
 
@@ -350,6 +440,7 @@ int main()
 	Vehicle vehicle;
 	Chevy chevy;
 	Dodge dodge;
+	AddonsInstalled addons;
 
 	/* Intro */
 	cout << "Welcome to the Drag Racing capital of the Hello World!" << endl << endl;
@@ -367,8 +458,23 @@ int main()
 		else if (choice == 2)
 		{
 			// Race! 
-			int roll = vehicle.RandomRoll();// Get weather temp (lower temp = more horsepower)
-			cout << "The weather temperature for this race is: " << roll << endl;
+			/* Get reaction time for each vehicle */
+			int roll = vehicle.RandomRoll();// Get Chevy reaction time
+			double reactionTime1 = static_cast<double>(roll) / 1000;
+			cout << "Lane 1: Chevy reaction time: " << reactionTime1 << endl;
+			roll = vehicle.RandomRoll();// Get Dodge reaction time
+			double reactionTime2 = static_cast<double>(roll) / 1000;
+			cout << "Lane 2: Dodge reaction time: " << reactionTime2 << endl;
+
+			 
+			if (addons.chevyTires && addons.chevyTires == true)
+			{
+				double tr = chevy.GetVehicleTraction();
+				cout << "Current tire traction: " << tr << endl;
+				tr = tr += widerTireTraction;
+				cout << "NEW tire traction: " << tr << endl;
+			}
+
 
 			// TODO: Finish all race requirements, timers and threading to start race
 
@@ -393,11 +499,11 @@ int main()
 
 			if (chevy.vehicleModified == true)// Has the vehicle been modified and saved to file?
 			{
-				vehicle.OpenSpeedShop(chevyEntries, vehicle.vehicleMake);// Open Chevy speed shop with appropriate performance add-ons populated
+				addons = vehicle.OpenSpeedShop(chevyEntries, vehicle.vehicleMake);// Open Chevy speed shop with appropriate performance add-ons populated				 
 			}
 			else
 			{
-				vehicle.OpenSpeedShop(vehicle.vehicleMake);// Open Chevy speed shop with no performance add-ons already installed
+				addons = vehicle.OpenSpeedShop(vehicle.vehicleMake);// Open Chevy speed shop with no performance add-ons already installed
 			}
 		}// end if choice == 3
 		else if (choice == 4)
@@ -420,11 +526,11 @@ int main()
 
 			if (dodge.vehicleModified == true)// Has the vehicle been modified and saved to file?
 			{
-				vehicle.OpenSpeedShop(dodgeEntries, vehicle.vehicleMake);// Open Dodge speed shop with appropriate performance add-ons populated
+				addons = vehicle.OpenSpeedShop(dodgeEntries, vehicle.vehicleMake);// Open Dodge speed shop with appropriate performance add-ons populated
 			}
 			else
 			{
-				vehicle.OpenSpeedShop(vehicle.vehicleMake);// Open Dodge speed shop with no performance add-ons already installed
+				addons = vehicle.OpenSpeedShop(vehicle.vehicleMake);// Open Dodge speed shop with no performance add-ons already installed
 			}
 		}// end if choice == 4
 		else if (choice == 5)
@@ -441,7 +547,7 @@ int main()
 				
 				if (chevy.vehicleModified == true)
 				{
-					vehicle.OpenSpeedShop(vStr, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
+					addons = vehicle.OpenSpeedShop(vStr, "Chevy");// Open Chevy speed shop with appropriate performance add-ons populated
 				}
 			}			 
 		}// end if choice == 5
@@ -459,7 +565,7 @@ int main()
 
 				if (dodge.vehicleModified == true)
 				{
-					vehicle.OpenSpeedShop(vStr, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
+					addons = vehicle.OpenSpeedShop(vStr, "Dodge");// Open Dodge speed shop with appropriate performance add-ons populated
 				}
 			}			 
 		}// end if choice == 6		
@@ -474,7 +580,7 @@ int main()
 		}
 		else
 		{
-			cout << "Invalid choice" << endl;// This message will show if a non-listed number is entered
+			cout << "Invalid choice" << endl;// Exception handling: This message will show if a non-listed number is entered
 		};// end else if		
 		cout << endl;
 		choice = mainMenu();
