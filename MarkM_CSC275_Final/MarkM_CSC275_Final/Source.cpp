@@ -18,23 +18,23 @@
 using namespace std;
 
 string fileName = "VehicleData.txt";// File name
-int chevySuperchargerHP = 200;
-double chevyWiderTireTraction = 200.0;
-int dodgeSuperchargerHP = 200;
-double dodgeWiderTireTraction = 200.0;
-double ET;
+int chevySuperchargerHP = 200;// Value to add when adding a supercharger to the Chevy
+double chevyWiderTireTraction = 200.0;// Value to add when adding wider tires to the Chevy
+int dodgeSuperchargerHP = 200;// Value to add when adding a supercharger to the Dodge
+double dodgeWiderTireTraction = 200.0;// Value to add when adding wider tires to the Dodge
+double ET;// Elapsed time
 
-struct AddonsInstalled
+struct AddonsInstalled// This gets returned from the speed shop functions
 {
 	bool chevyTires = false;
 	bool chevySupercharger = false;
 	bool dodgeTires = false;
 	bool dodgeSupercharger = false;
-};
- 
+}; 
 
 int mainMenu()
 {
+	/* MAIN MENU OPTIONS */
 	int choice;
 	cout << "1 = Rules" << endl;
 	cout << "2 = RACE!" << endl;
@@ -59,7 +59,7 @@ int mainMenu()
 	}
 	catch (string ex)
 	{
-		cout << "Input error: " << ex << endl;
+		cout << "Input error: " << ex << endl;// Display error message
 	}
 		 
 	return choice;
@@ -67,6 +67,7 @@ int mainMenu()
 
 int speedShopMenu(bool tires, bool supercharger)
 {
+	/* SPEED SHOP MENU - Displays according to whether the vehicle has addons already installed or not */
 	int choice;
 	 if (tires)// Wider tires installed?
 	 {
@@ -91,26 +92,23 @@ int speedShopMenu(bool tires, bool supercharger)
 	return choice;
 }; // End of menu
 
-class GameStructure
+class GameStructure // Base class of the game
 {
 public:
 	void Rules(string chevyDesc, string dodgeDesc)
 	{
-		cout << "Cars can be raced in their stock form by choose race from the menu" << endl;// Race as-is
+		cout << "Cars can be raced in their stock form by choosing race from the menu" << endl;// Race as-is
 		cout << "or you can customize each car in the speed shops." << endl << endl;// Speed shop
-		cout << "To save what you have installed on a specific vehicle, choose the save option for" << endl;// Save
-		cout << "that vehicle and the current configuration will be saved to file. This must be done for each" << endl;
-		cout << "vehicle that has been customized!" << endl << endl;		
-		cout << "If you had previously saved a customized vehicle, you can also load it from file before you race." << endl << endl;// Load
-		cout << "Currently installed add-ons for each vehicle can be viewed via the menu" << endl;// View
-		cout << "You can also view the list of fastest (best) runs by choosing that menu option." << endl << endl;
-
-		cout << "Each vehicle has a strength and a weakness, so choose your performance add-ons wisely." << endl;
+		cout << "Once you install an item in the speed shop on a specific vehicle, " << endl;// Save
+		cout << "your choice(s) will be saved to file." << endl;
+		cout << endl;		
+		cout << "If you have previously saved a customized vehicle, you can also load it from file before you race." << endl << endl;
+		cout << "Each vehicle has a strength and a weakness, so choose your performance add-ons wisely." << endl << endl;
 		cout << chevyDesc << endl;
 		cout << dodgeDesc << endl;
 	}
 
-	virtual int RandomRoll()// Can be overridden
+	virtual int RandomRoll()
 	{	 
 		/* Roll random number */
 		random_device rd; // obtain a random number
@@ -124,14 +122,16 @@ public:
 class Vehicle : public GameStructure
 {
 public:
+	/* Vars that can be used by child classes */
 	string vehicleMake;
-	bool vehicleModified;// Has the vehicle been modified?
+	bool vehicleModified;
 	bool tiresInstalled;
 	bool superchargerInstalled;
-	string vehicledescription = "";
-	int horsepower = 0;
-	double traction = 0.f;
-	AddonsInstalled addons;
+	string vehicledescription;
+	int horsepower;
+	double traction;
+
+	AddonsInstalled addons;// Init struct
 
 	Vehicle()
 	{
@@ -140,19 +140,21 @@ public:
 		vehicleModified = false;
 		tiresInstalled = false;
 		superchargerInstalled = false;
+		vehicledescription = "";
+		horsepower = 0;
+		traction = 0.f;
 	}  
 
 	int RandomRoll() override
 	{
-		int roll = GameStructure::RandomRoll();// Call to function in parent class		 
+		int roll = GameStructure::RandomRoll();// Call parent	 
 		return roll;
 	}
 		
-	vector<string> ReadAllFromFile()
+	vector<string> ReadAllFromFile()// Get all lines from file
 	{
 		/* Vars */
-		vector<string> allLines;
-		int count = 1;
+		vector<string> allLines;		 
 		string dataFound;
 		string line;
 		ifstream infile(fileName);
@@ -160,10 +162,8 @@ public:
 		 
 		while (getline(infile, line))// Parse file line by line
 		{
-			istringstream iss(line);// get the line		 
-			//cout << "Entry " << count << ": " << line << endl;
-			allLines.push_back(line);
-			count++;// increment the entry number count
+			istringstream iss(line);// Get the line					 
+			allLines.push_back(line);// Add to list			 
 		}
 		return allLines;
 	}// End ReadAllFromFile
@@ -224,7 +224,7 @@ public:
 			size_t pos = entry.find("tires");// Search for the word tires in entry
 			if (pos != string::npos)// found?
 			{
-				tiresInstalled = true;
+				tiresInstalled = true;// Wider tires have been installed
 				if (vehicle == "Chevy")
 				{
 					addons.chevyTires = true;
@@ -238,7 +238,7 @@ public:
 			size_t pos2 = entry.find("supercharger");// Search for the word supercharger in entry
 			if (pos2 != string::npos)// found?
 			{
-				superchargerInstalled = true;
+				superchargerInstalled = true;// Supercharger has been installed
 				if (vehicle == "Chevy")
 				{
 					addons.chevySupercharger = true;
@@ -346,11 +346,11 @@ public:
 
 class Chevy : public Vehicle
 {
-private:
+private:// Private vars
 	string vehicledescription = "The Chevy has great tire traction but not as much horsepower as the Dodge.";
 	 int horsepower = 650;
 	 double traction = 850.0f;
-public:
+public:// Getters/Setters
 	string GetVehicleDescription()
 	{
 		return vehicledescription;
@@ -375,12 +375,12 @@ public:
 
 class Dodge : public Vehicle
 {
-private:
+private:// Private vars
 	string vehicledescription = "The Dodge has great horsepower but not as much tire traction as the Chevy.";
 	int horsepower = 850;
 	double traction = 650.00f;
 
-public:
+public:// Getters/Setters
 	string GetVehicleDescription()
 	{
 		return vehicledescription;
@@ -436,10 +436,10 @@ int main()
 			/* Get reaction time for each vehicle */
 			int roll = vehicle.RandomRoll();// Get Chevy reaction time
 			double chevyRt = static_cast<double>(roll);
-			cout << "Lane 1: Chevy reaction time: " << chevyRt / 1000 << endl;
+			cout << "Lane 1: Chevy reaction time: " << chevyRt / 1000 << endl;// Display in "seconds"
 			roll = vehicle.RandomRoll();// Get Dodge reaction time
 			double dodgeRt = static_cast<double>(roll);
-			cout << "Lane 2: Dodge reaction time: " << dodgeRt / 1000 << endl;
+			cout << "Lane 2: Dodge reaction time: " << dodgeRt / 1000 << endl;// Display in "seconds"
 
 			/* Get all addons installed/loaded - if any */
 			if (addons.chevyTires == true)
@@ -607,7 +607,6 @@ int main()
 		cout << endl;
 		choice = mainMenu();
 	}; // end while
-
 	
 	system("pause");
 }
